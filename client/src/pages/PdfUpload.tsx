@@ -38,9 +38,10 @@ export default function PdfUpload() {
 
     try {
       const buffer = await selectedFile.arrayBuffer();
+      const uint8Array = new Uint8Array(buffer);
       const result = await uploadMutation.mutateAsync({
         fileName: selectedFile.name,
-        fileBuffer: Buffer.from(buffer),
+        fileBuffer: uint8Array as any,
       });
 
       if (!result.success) {

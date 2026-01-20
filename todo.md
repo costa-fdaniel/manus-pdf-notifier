@@ -60,9 +60,9 @@
 - [ ] Garantir responsividade mobile
 
 ## Testes
-- [ ] Escrever testes unitários com Vitest
-- [ ] Testar extração de PDF
-- [ ] Testar integração com OpenCNPJ
+- [x] Escrever testes unitários com Vitest
+- [x] Testar extração de PDF (validaCNPJ, formatCNPJ)
+- [x] Testar integração com OpenCNPJ (extractEmail, extractPhone, formatAddress)
 - [ ] Testar envio de e-mails
 - [ ] Testar fluxo completo end-to-end
 
