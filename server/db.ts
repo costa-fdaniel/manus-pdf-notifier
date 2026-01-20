@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, pdfUploads, InsertPdfUpload, extractedCompanies, InsertExtractedCompany, emailTemplates, InsertEmailTemplate, emailCampaigns, InsertEmailCampaign, emailLogs, InsertEmailLog } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,130 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+// PDF Upload helpers
+export async function createPdfUpload(data: InsertPdfUpload) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(pdfUploads).values(data);
+  return result;
+}
+
+export async function getPdfUploadById(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.select().from(pdfUploads).where(eq(pdfUploads.id, id)).limit(1);
+  return result[0];
+}
+
+export async function updatePdfUploadStatus(id: number, status: string, processedRows?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const updates: any = { status, updatedAt: new Date() };
+  if (processedRows !== undefined) updates.processedRows = processedRows;
+  
+  await db.update(pdfUploads).set(updates).where(eq(pdfUploads.id, id));
+}
+
+// Extracted Companies helpers
+export async function createExtractedCompanies(data: InsertExtractedCompany[]) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(extractedCompanies).values(data);
+  return result;
+}
+
+export async function getCompaniesByUploadId(uploadId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.select().from(extractedCompanies).where(eq(extractedCompanies.uploadId, uploadId));
+  return result;
+}
+
+export async function updateCompanyStatus(id: number, status: string, cnpjData?: any) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const updates: any = { status, updatedAt: new Date() };
+  if (cnpjData) updates.cnpjData = JSON.stringify(cnpjData);
+  
+  await db.update(extractedCompanies).set(updates).where(eq(extractedCompanies.id, id));
+}
+
+// Email Templates helpers
+export async function createEmailTemplate(data: InsertEmailTemplate) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(emailTemplates).values(data);
+  return result;
+}
+
+export async function getEmailTemplatesByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.select().from(emailTemplates).where(eq(emailTemplates.userId, userId));
+  return result;
+}
+
+// Email Campaigns helpers
+export async function createEmailCampaign(data: InsertEmailCampaign) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(emailCampaigns).values(data);
+  return result;
+}
+
+export async function getEmailCampaignById(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.select().from(emailCampaigns).where(eq(emailCampaigns.id, id)).limit(1);
+  return result[0];
+}
+
+export async function updateEmailCampaignStatus(id: number, status: string, sentCount?: number, failedCount?: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const updates: any = { status, updatedAt: new Date() };
+  if (sentCount !== undefined) updates.sentCount = sentCount;
+  if (failedCount !== undefined) updates.failedCount = failedCount;
+  if (status === "sent") updates.sentAt = new Date();
+  
+  await db.update(emailCampaigns).set(updates).where(eq(emailCampaigns.id, id));
+}
+
+// Email Logs helpers
+export async function createEmailLog(data: InsertEmailLog) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.insert(emailLogs).values(data);
+  return result;
+}
+
+export async function updateEmailLogStatus(id: number, status: string, messageId?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const updates: any = { status, updatedAt: new Date() };
+  if (messageId) updates.messageId = messageId;
+  if (status === "sent") updates.sentAt = new Date();
+  
+  await db.update(emailLogs).set(updates).where(eq(emailLogs.id, id));
+}
+
+export async function getEmailLogsByCampaignId(campaignId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const result = await db.select().from(emailLogs).where(eq(emailLogs.campaignId, campaignId));
+  return result;
+}
