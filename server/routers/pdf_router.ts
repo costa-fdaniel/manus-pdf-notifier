@@ -18,16 +18,23 @@ export const pdfRouter = router({
     .input(
       z.object({
         fileName: z.string(),
-        fileBuffer: z.instanceof(Buffer),
+        fileBuffer: z.union([
+          z.instanceof(Buffer),
+          z.instanceof(Uint8Array),
+        ]),
       })
     )
     .mutation(async ({ ctx, input }) => {
       try {
         const fileKey = `pdfs/${ctx.user.id}/${Date.now()}-${input.fileName}`;
 
+        const buffer = Buffer.isBuffer(input.fileBuffer)
+          ? input.fileBuffer
+          : Buffer.from(input.fileBuffer);
+
         const { url } = await storagePut(
           fileKey,
-          input.fileBuffer,
+          buffer,
           "application/pdf"
         );
 
