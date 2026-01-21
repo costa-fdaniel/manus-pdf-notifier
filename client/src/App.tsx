@@ -7,6 +7,8 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import PdfUpload from "./pages/PdfUpload";
 import CampaignManager from "./pages/CampaignManager";
+import ExtractedData from "./pages/ExtractedData";
+import Dashboard from "./pages/Dashboard";
 
 function Router() {
   return (
@@ -14,6 +16,8 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/upload" component={PdfUpload} />
       <Route path="/campaigns" component={CampaignManager} />
+      <Route path="/data" component={ExtractedData} />
+      <Route path="/dashboard" component={Dashboard} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileUp, Mail, BarChart3, Zap } from "lucide-react";
+import { FileUp, Mail, BarChart3, Database } from "lucide-react";
 import { getLoginUrl } from "@/const";
 import { useLocation } from "wouter";
 
@@ -82,26 +82,32 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800 border-slate-700 cursor-pointer hover:border-purple-500 transition">
+          <Card
+            className="bg-slate-800 border-slate-700 cursor-pointer hover:border-purple-500 transition"
+            onClick={() => setLocation("/dashboard")}
+          >
             <CardHeader>
               <BarChart3 className="w-8 h-8 text-purple-500 mb-2" />
-              <CardTitle className="text-white">Relatórios</CardTitle>
+              <CardTitle className="text-white">Dashboard</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-slate-400">
-                Visualize estatísticas e histórico
+                Visualize estatísticas e métricas
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-800 border-slate-700 cursor-pointer hover:border-orange-500 transition">
+          <Card
+            className="bg-slate-800 border-slate-700 cursor-pointer hover:border-orange-500 transition"
+            onClick={() => setLocation("/data")}
+          >
             <CardHeader>
-              <Zap className="w-8 h-8 text-orange-500 mb-2" />
-              <CardTitle className="text-white">Automação</CardTitle>
+              <Database className="w-8 h-8 text-orange-500 mb-2" />
+              <CardTitle className="text-white">Dados Extraídos</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-slate-400">
-                Configure fluxos automáticos
+                Visualize e exporte os dados
               </p>
             </CardContent>
           </Card>

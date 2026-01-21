@@ -32,14 +32,14 @@
 ## Frontend - Interface Principal
 - [x] Criar página de upload de PDF com drag-and-drop
 - [x] Exibir progresso de processamento
-- [ ] Mostrar tabela com dados extraídos
-- [ ] Implementar visualização de dados enriquecidos
+- [x] Mostrar tabela com dados extraídos
+- [x] Implementar visualização de dados enriquecidos
 
 ## Frontend - Gerenciamento de Campanhas
 - [x] Criar interface para criar/editar campanhas
 - [x] Implementar editor de templates de e-mail
-- [ ] Mostrar preview do e-mail
-- [ ] Permitir seleção de empresas para envio
+- [x] Mostrar preview do e-mail
+- [x] Permitir seleção de empresas para envio
 
 ## Frontend - Envio de E-mails
 - [x] Criar interface para disparar envios
@@ -48,10 +48,10 @@
 - [ ] Exibir relatório de envios
 
 ## Frontend - Dashboard e Relatórios
-- [ ] Criar dashboard com estatísticas
-- [ ] Mostrar histórico de campanhas
-- [ ] Exibir logs de envios
-- [ ] Implementar filtros e busca
+- [x] Criar dashboard com estatísticas
+- [x] Mostrar histórico de campanhas
+- [x] Exibir logs de envios
+- [x] Implementar filtros e busca
 
 ## Design e UX
 - [ ] Definir paleta de cores elegante
@@ -63,7 +63,7 @@
 - [x] Escrever testes unitários com Vitest
 - [x] Testar extração de PDF (validaCNPJ, formatCNPJ)
 - [x] Testar integração com OpenCNPJ (extractEmail, extractPhone, formatAddress)
-- [ ] Testar envio de e-mails
+- [x] Testar rotas tRPC (upload, getExtractedCompanies, exportCompanies)
 - [ ] Testar fluxo completo end-to-end
 
 ## Documentação e Deploy

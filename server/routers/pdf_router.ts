@@ -5,8 +5,11 @@ import {
   createPdfUpload,
   getPdfUploadById,
   getCompaniesByUploadId,
+  getDb,
 } from "../db";
 import { processPdfUpload } from "../pdf_processing_service";
+import { extractedCompanies, pdfUploads } from "../../drizzle/schema";
+import { eq, inArray } from "drizzle-orm";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -62,7 +65,7 @@ export const pdfRouter = router({
         if (!upload) {
           return {
             success: false,
-            error: "Upload não encontrado",
+            error: "Upload nao encontrado",
           };
         }
 
@@ -129,5 +132,117 @@ export const pdfRouter = router({
       }
 
       return await getCompaniesByUploadId(input.uploadId);
+    }),
+
+  getExtractedCompanies: protectedProcedure
+    .input(
+      z.object({
+        status: z.enum(["extracted", "enriched", "failed"]).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) return [];
+
+      const companies = await db
+        .select({
+          id: extractedCompanies.id,
+          name: extractedCompanies.companyName,
+          cnpj: extractedCompanies.cnpj,
+          email: extractedCompanies.email,
+          phone: extractedCompanies.phone,
+          status: extractedCompanies.status,
+          createdAt: extractedCompanies.createdAt,
+        })
+        .from(extractedCompanies)
+        .innerJoin(pdfUploads, eq(extractedCompanies.uploadId, pdfUploads.id))
+        .where(eq(pdfUploads.userId, ctx.user.id));
+
+      if (input.status) {
+        return companies.filter((c) => c.status === input.status);
+      }
+
+      return companies;
+    }),
+
+  exportCompanies: protectedProcedure
+    .input(
+      z.object({
+        companyIds: z.array(z.number()).optional(),
+        format: z.enum(["csv", "json"]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const db = await getDb();
+        if (!db) {
+          return {
+            success: false,
+            error: "Banco de dados nao disponivel",
+          };
+        }
+
+        let companies = await db
+          .select()
+          .from(extractedCompanies)
+          .innerJoin(pdfUploads, eq(extractedCompanies.uploadId, pdfUploads.id))
+          .where(eq(pdfUploads.userId, ctx.user.id));
+
+        if (input.companyIds && input.companyIds.length > 0) {
+          companies = companies.filter((c) =>
+            input.companyIds!.includes(c.extracted_companies.id)
+          );
+        }
+
+        let fileContent: string;
+        let mimeType: string;
+
+        if (input.format === "csv") {
+          const headers = [
+            "ID",
+            "Nome",
+            "CNPJ",
+            "E-mail",
+            "Telefone",
+            "Status",
+            "Data",
+          ];
+          const rows = companies.map((row) => {
+            const c = row.extracted_companies;
+            return [
+              c.id,
+              c.companyName,
+              c.cnpj,
+              c.email || "",
+              c.phone || "",
+              c.status,
+              new Date(c.createdAt).toISOString(),
+            ];
+          });
+
+          fileContent =
+            headers.join(",") +
+            "\n" +
+            rows.map((r) => r.map((v) => `"${v}"`).join(",")).join("\n");
+          mimeType = "text/csv";
+        } else {
+          const data = companies.map((row) => row.extracted_companies);
+          fileContent = JSON.stringify(data, null, 2);
+          mimeType = "application/json";
+        }
+
+        const fileKey = `exports/${ctx.user.id}/${Date.now()}-companies.${input.format}`;
+        const { url } = await storagePut(fileKey, fileContent, mimeType);
+
+        return {
+          success: true,
+          url,
+        };
+      } catch (error: any) {
+        return {
+          success: false,
+          error: `Erro ao exportar: ${error.message}`,
+        };
+      }
     }),
 });

@@ -10,8 +10,10 @@ import {
   updateEmailLogStatus,
   getEmailLogsByCampaignId,
   getCompaniesByUploadId,
+  getDb,
 } from "../db";
 import { sendEmail } from "../outlook_service";
+import { eq } from "drizzle-orm";
 import type { OutlookEmailConfig } from "../outlook_service";
 
 export const campaignRouter = router({
@@ -208,4 +210,99 @@ export const campaignRouter = router({
 
       return await getEmailLogsByCampaignId(input.campaignId);
     }),
+
+  getStats: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const db = await getDb();
+      if (!db) {
+        return {
+          totalUploads: 0,
+          totalCompanies: 0,
+          enrichedCompanies: 0,
+          totalCampaigns: 0,
+          totalEmailsSent: 0,
+          totalEmailsFailed: 0,
+          weeklyData: [],
+          statusBreakdown: [],
+        };
+      }
+
+      const { pdfUploads, extractedCompanies, emailCampaigns, emailLogs } = await import(
+        "../../drizzle/schema"
+      );
+
+      const uploads = await db
+        .select()
+        .from(pdfUploads)
+        .where(eq(pdfUploads.userId, ctx.user.id));
+
+      const companies = await db
+        .select()
+        .from(extractedCompanies);
+
+      const campaigns = await db
+        .select()
+        .from(emailCampaigns)
+        .where(eq(emailCampaigns.userId, ctx.user.id));
+
+      const logs = await db.select().from(emailLogs);
+
+      const enrichedCount = companies.filter(
+        (c: any) => c.status === "enriched"
+      ).length;
+      const sentCount = logs.filter((l: any) => l.status === "sent").length;
+      const failedCount = logs.filter((l: any) => l.status === "failed").length;
+
+      const statusBreakdown = [
+        {
+          name: "Extraído",
+          value: companies.filter((c: any) => c.status === "extracted").length,
+        },
+        {
+          name: "Enriquecido",
+          value: enrichedCount,
+        },
+        {
+          name: "Enviado",
+          value: companies.filter((c: any) => c.status === "emailed").length,
+        },
+        {
+          name: "Falhou",
+          value: companies.filter((c: any) => c.status === "failed").length,
+        },
+      ];
+
+      const weeklyData = [
+        { day: "Seg", uploads: 0, emails: 0 },
+        { day: "Ter", uploads: 0, emails: 0 },
+        { day: "Qua", uploads: 0, emails: 0 },
+        { day: "Qui", uploads: 0, emails: 0 },
+        { day: "Sex", uploads: 0, emails: 0 },
+        { day: "Sab", uploads: 0, emails: 0 },
+        { day: "Dom", uploads: 0, emails: 0 },
+      ];
+
+      return {
+        totalUploads: uploads.length,
+        totalCompanies: companies.length,
+        enrichedCompanies: enrichedCount,
+        totalCampaigns: campaigns.length,
+        totalEmailsSent: sentCount,
+        totalEmailsFailed: failedCount,
+        weeklyData,
+        statusBreakdown,
+      };
+    } catch (error: any) {
+      return {
+        totalUploads: 0,
+        totalCompanies: 0,
+        enrichedCompanies: 0,
+        totalCampaigns: 0,
+        totalEmailsSent: 0,
+        totalEmailsFailed: 0,
+        weeklyData: [],
+        statusBreakdown: [],
+      };
+    }
+  }),
 });
