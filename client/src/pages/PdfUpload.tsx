@@ -52,6 +52,11 @@ export default function PdfUpload() {
       setUploadProgress(50);
       toast.success("PDF enviado com sucesso!");
 
+      if (!result.uploadId || result.uploadId === 0) {
+        toast.error("Erro ao obter ID do upload");
+        return;
+      }
+
       // Processar PDF
       const processResult = await processMutation.mutateAsync({
         uploadId: result.uploadId,

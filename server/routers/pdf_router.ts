@@ -48,7 +48,7 @@ export const pdfRouter = router({
 
         return {
           success: true,
-          uploadId: (result as any).insertId,
+          uploadId: result?.id || 0,
           fileUrl: url,
         };
       } catch (error: any) {

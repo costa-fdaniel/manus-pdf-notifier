@@ -95,7 +95,10 @@ export async function createPdfUpload(data: InsertPdfUpload) {
   if (!db) throw new Error("Database not available");
   
   const result = await db.insert(pdfUploads).values(data);
-  return result;
+  
+  // Retornar o registro inserido para obter o ID
+  const inserted = await db.select().from(pdfUploads).where(eq(pdfUploads.fileKey, data.fileKey)).limit(1);
+  return inserted[0];
 }
 
 export async function getPdfUploadById(id: number) {
